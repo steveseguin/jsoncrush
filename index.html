@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Base64 Crusher</title>
+    <p>Stripe your JSON of non-vital data components</p>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        button {
+            padding: 8px 16px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>JSON Base64 Stripper</h1>
+    <div class="controls">
+        <label for="preserve">Preserve characters:</label>
+        <input type="number" id="preserve" value="8" min="1" max="100">
+        <label for="regex">Base64 pattern:</label>
+        <input type="text" id="regex" value="[A-Za-z0-9+/=]{20,}" style="width: 260px;">
+    </div>
+    
+    <textarea id="input" placeholder="Paste your JSON here..."></textarea>
+    
+    <div class="controls">
+        <button id="process">Process JSON</button>
+        <button id="copy">Copy Result</button>
+        <button id="clear">Clear</button>
+    </div>
+    
+    <h3>Result:</h3>
+    <pre id="output"></pre>
+
+    <script>
+        function stripBase64FromJSON(jsonObj, preserveChars = 8, base64Pattern) {
+            if (!jsonObj) return jsonObj;
+            
+            const regex = new RegExp(base64Pattern);
+            
+            function processValue(value) {
+                if (typeof value === 'string') {
+                    // Check for data:image format or other base64 indicators
+                    const dataUriMatch = value.match(/data:[^;]+;base64,([A-Za-z0-9+/=]+)/);
+                    if (dataUriMatch) {
+                        const prefix = value.substring(0, value.indexOf('base64,') + 7);
+                        return `${prefix}${dataUriMatch[1].substring(0, preserveChars)}...`;
+                    }
+                    
+                    // Check for other base64 content using the provided regex
+                    if (regex.test(value)) {
+                        const match = value.match(regex);
+                        if (match) {
+                            const matchIndex = value.indexOf(match[0]);
+                            const beforeMatch = value.substring(0, matchIndex);
+                            return `${beforeMatch}base64:${match[0].substring(0, preserveChars)}...`;
+                        }
+                    }
+                }
+                return value;
+            }
+            
+            function traverseAndReplace(obj) {
+                if (obj === null || typeof obj !== 'object') {
+                    return processValue(obj);
+                }
+                
+                if (Array.isArray(obj)) {
+                    return obj.map(item => traverseAndReplace(item));
+                }
+                
+                const result = {};
+                for (const key in obj) {
+                    const value = obj[key];
+                    result[key] = traverseAndReplace(value);
+                }
+                return result;
+            }
+            
+            return traverseAndReplace(jsonObj);
+        }
+
+        document.getElementById('process').addEventListener('click', () => {
+            try {
+                const inputJson = document.getElementById('input').value;
+                if (!inputJson.trim()) {
+                    alert('Please enter some JSON');
+                    return;
+                }
+                
+                const preserveChars = parseInt(document.getElementById('preserve').value);
+                const base64Pattern = document.getElementById('regex').value;
+                
+                const parsedJson = JSON.parse(inputJson);
+                const processed = stripBase64FromJSON(parsedJson, preserveChars, base64Pattern);
+                
+                document.getElementById('output').textContent = 
+                    JSON.stringify(processed, null, 2);
+            } catch (error) {
+                document.getElementById('output').textContent = 
+                    `Error: ${error.message}`;
+            }
+        });
+
+        document.getElementById('copy').addEventListener('click', () => {
+            const output = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(output).then(
+                () => alert('Copied to clipboard!'),
+                () => alert('Failed to copy')
+            );
+        });
+        
+        document.getElementById('clear').addEventListener('click', () => {
+            document.getElementById('input').value = '';
+            document.getElementById('output').textContent = '';
+        });
+    </script>
+</body>
+</html>
