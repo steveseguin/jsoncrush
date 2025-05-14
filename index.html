@@ -105,6 +105,18 @@
             function processValue(value) {
                 if (typeof value !== 'string') return value;
                 
+                // Try to parse JSON strings
+                if ((value.startsWith('{') && value.endsWith('}')) || 
+                    (value.startsWith('[') && value.endsWith(']'))) {
+                    try {
+                        const parsedJson = JSON.parse(value);
+                        const processedJson = traverseAndReplace(parsedJson);
+                        return JSON.stringify(processedJson);
+                    } catch (e) {
+                        // Not valid JSON, continue with normal processing
+                    }
+                }
+                
                 // Handle base64 in data URIs
                 const dataUriMatch = value.match(/data:[^;]+;base64,([A-Za-z0-9+/=]+)/);
                 if (dataUriMatch) {
@@ -154,7 +166,7 @@
             
             return traverseAndReplace(jsonObj);
         }
-
+        
         document.getElementById('process').addEventListener('click', () => {
             try {
                 const inputJson = document.getElementById('input').value;
