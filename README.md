@@ -1,4 +1,4 @@
-# JSON Shortener
+# JSON Crush
 
 A lightweight, browser-based tool for cleaning and shortening JSON data.
 
