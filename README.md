@@ -2,7 +2,7 @@
 
 A lightweight, browser-based tool for cleaning and shortening JSON data.
 
-![image](https://github.com/user-attachments/assets/e24a61c3-9de0-4f7b-b24c-c0dbe1c632df)
+![image](https://github.com/user-attachments/assets/5b524440-5d38-40c8-a6fb-882388d8198b)
 
 DEMO: [https://github.com/steveseguin/jsoncrush](https://github.com/steveseguin/jsoncrush)
 
