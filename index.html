@@ -81,11 +81,12 @@
                     
                     // Process query parameters
                     if (urlObj.search) {
-                        const searchParams = new URLSearchParams(urlObj.search);
-                        searchParams.forEach((value, key) => {
-                            if (value.length > maxUrlParamLength) {
-                                searchParams.set(key, value.substring(0, maxUrlParamLength) + '...');
-                            }
+                        const searchParams = new URLSearchParams();
+                        urlObj.searchParams.forEach((value, key) => {
+                            // Append each entry so repeated keys retain all values and their order.
+                            searchParams.append(key, value.length > maxUrlParamLength
+                                ? value.substring(0, maxUrlParamLength) + '...'
+                                : value);
                         });
                         urlObj.search = searchParams.toString();
                     }
@@ -117,6 +118,11 @@
                     }
                 }
                 
+                // Handle URLs before base64 detection can mistake a domain, path, or parameter for encoded data.
+                if (value.match(/^https?:\/\//i)) {
+                    return shortenUrl(value);
+                }
+
                 // Handle base64 in data URIs
                 const dataUriMatch = value.match(/data:[^;]+;base64,([A-Za-z0-9+/=]+)/);
                 if (dataUriMatch) {
@@ -132,11 +138,6 @@
                         const beforeMatch = value.substring(0, matchIndex);
                         return `${beforeMatch}base64:${match[0].substring(0, preserveChars)}...`;
                     }
-                }
-                
-                // Handle URLs
-                if (value.match(/^https?:\/\//i)) {
-                    return shortenUrl(value);
                 }
                 
                 // Handle long text strings
@@ -206,3 +207,4 @@
     </script>
 </body>
 </html>
+

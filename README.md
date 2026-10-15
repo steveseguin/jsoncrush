@@ -61,6 +61,17 @@ cd json-shortener
 open index.html
 ```
 
+## Tests
+
+With Node.js 18 or newer installed, run the dependency-free regression tests:
+
+```
+node --test tests/url-shortening.test.cjs
+```
+
+These tests execute the application's inline JavaScript and check URL shortening, repeated query parameters, and existing base64/text behavior.
+
 ## License
 
 MIT
+
